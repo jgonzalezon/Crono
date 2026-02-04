@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 
 # =========================
 # Config
@@ -428,6 +429,11 @@ def make_color_series(data: pd.DataFrame):
 
 color_type, color_vals = make_color_series(d_show)
 
+# Preparar datos de modelos por mes
+d_monthly = d.copy()
+d_monthly['YearMonth'] = d_monthly[COL_DATE].dt.to_period('M').dt.to_timestamp()
+monthly_counts = d_monthly.groupby('YearMonth').size().reset_index(name='Cantidad')
+
 # =========================
 # Build figure
 # =========================
@@ -567,7 +573,7 @@ fig.update_xaxes(
     tickfont=dict(color=title_color),
     rangeslider=dict(
         visible=True,
-        thickness=0.02,
+        thickness=0.01,
         bgcolor="rgba(0,0,0,0)",
         bordercolor=grid_color,
         borderwidth=1,
@@ -593,7 +599,112 @@ fig.update_yaxes(
 # =========================
 # Render
 # =========================
-st.plotly_chart(fig, width="stretch", config={"displaylogo": False})
+
+# Crear figura con subplots compartiendo eje X
+fig_combined = make_subplots(
+    rows=2, cols=1,
+    shared_xaxes=True,
+    vertical_spacing=0.08,
+    row_heights=[0.7, 0.3],
+    subplot_titles=("Timeline de modelos", "Modelos lanzados por mes")
+)
+
+# Copiar trazas del gráfico principal al subplot 1
+for trace in fig.data:
+    trace.xaxis = 'x'
+    trace.yaxis = 'y'
+    fig_combined.add_trace(trace, row=1, col=1)
+
+# Añadir gráfica de barras al subplot 2
+fig_combined.add_trace(go.Bar(
+    x=monthly_counts['YearMonth'],
+    y=monthly_counts['Cantidad'],
+    marker=dict(
+        color='#ff6b6b' if theme == "Oscuro" else '#e63946',
+        line=dict(width=1, color=title_color)
+    ),
+    hovertemplate="<b>%{x|%b %Y}</b><br>Modelos: %{y}<extra></extra>",
+    showlegend=False
+), row=2, col=1)
+
+# Layout combinado
+fig_combined.update_layout(
+    template=template,
+    height=plot_height + 250,
+    margin=dict(l=80, r=30, t=120, b=60),
+    title=dict(
+        text=f"LLMs (2023+) — Timeline con filtros<br><sup>Mostrando {len(d_show):,} modelos | Top {top_n} resaltado</sup>",
+        font=dict(color=title_color, size=20),
+        y=0.98,
+        x=0.01,
+        xanchor='left',
+        yanchor='top'
+    ),
+    legend=dict(
+        orientation="h",
+        yanchor="top",
+        y=1.08,
+        xanchor="left",
+        x=0.25,
+        font=dict(color=title_color, size=13)
+    ),
+    paper_bgcolor=paper_bgcolor,
+    plot_bgcolor=plot_bgcolor,
+    font=dict(color=title_color, size=14),
+)
+
+# Configurar eje X compartido con rangeslider
+fig_combined.update_xaxes(
+    title="",
+    title_font=dict(color=title_color, size=14),
+    tickfont=dict(color=title_color, size=12),
+    showgrid=True,
+    gridcolor=grid_color,
+    row=1, col=1
+)
+
+fig_combined.update_xaxes(
+    title="Fecha",
+    title_font=dict(color=title_color, size=14),
+    tickfont=dict(color=title_color, size=12),
+    showgrid=True,
+    gridcolor=grid_color,
+    tickformat="%b %Y",
+    rangeslider=dict(
+        visible=True,
+        thickness=0.02,
+        bgcolor="rgba(0,0,0,0)",
+        bordercolor=grid_color,
+        borderwidth=1
+    ),
+    row=2, col=1
+)
+
+# Configurar ejes Y
+fig_combined.update_yaxes(
+    title=y_title + (" [log]" if (y_scale == "Log") else ""),
+    title_font=dict(color=title_color, size=14),
+    tickfont=dict(color=title_color, size=12),
+    type="log" if (y_scale == "Log") else "linear",
+    showgrid=True,
+    gridcolor=grid_color,
+    row=1, col=1
+)
+
+fig_combined.update_yaxes(
+    title="Modelos/mes",
+    title_font=dict(color=title_color, size=14),
+    tickfont=dict(color=title_color, size=12),
+    showgrid=True,
+    gridcolor=grid_color,
+    row=2, col=1
+)
+
+# Actualizar colores de títulos de subplots
+for annotation in fig_combined.layout.annotations:
+    annotation.font = dict(color=title_color)
+
+st.plotly_chart(fig_combined, width="stretch", config={"displaylogo": False})
 
 # =========================
 # Exports
