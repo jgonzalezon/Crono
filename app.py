@@ -124,15 +124,20 @@ with st.sidebar.expander("Filtros", expanded=True):
 
     # Benchmark & Y
     if bench_cols:
-        bench = st.selectbox(
+        bench_options = ["Ninguno"] + bench_cols
+        bench_selection = st.selectbox(
             "Benchmark",
-            bench_cols,
+            bench_options,
             index=0
         )
+        bench = None if bench_selection == "Ninguno" else bench_selection
         only_with_score = st.checkbox(
             "Solo con score disponible",
-            value=True
+            value=False,
+            disabled=(bench is None)
         )
+        if bench is None:
+            only_with_score = False
     else:
         bench, only_with_score = None, False
         st.info("No se detectaron benchmarks en el dataset")
@@ -265,6 +270,42 @@ if theme == "Oscuro":
         [data-testid="stSidebar"] * {
             color: #fafafa;
         }
+        /* Selectbox/Dropdown oscuro */
+        [data-baseweb="select"] {
+            background-color: #1e2130 !important;
+        }
+        [data-baseweb="select"] * {
+            color: #fafafa !important;
+            background-color: #1e2130 !important;
+        }
+        [data-baseweb="popover"] {
+            background-color: #1e2130 !important;
+        }
+        [role="listbox"] {
+            background-color: #1e2130 !important;
+        }
+        [role="option"] {
+            background-color: #1e2130 !important;
+            color: #fafafa !important;
+        }
+        [role="option"]:hover {
+            background-color: #3d4251 !important;
+        }
+        /* Inputs oscuros */
+        input, textarea {
+            background-color: #1e2130 !important;
+            color: #fafafa !important;
+            border-color: #3d4251 !important;
+        }
+        /* Expanders oscuros */
+        [data-testid="stExpander"] {
+            background-color: #1e2130;
+            border-color: #3d4251;
+        }
+        /* Sliders oscuros */
+        [data-testid="stSlider"] * {
+            color: #fafafa !important;
+        }
     </style>
     """, unsafe_allow_html=True)
 else:
@@ -303,6 +344,42 @@ else:
         }
         [data-testid="stSidebar"] * {
             color: #31333F;
+        }
+        /* Selectbox/Dropdown claro */
+        [data-baseweb="select"] {
+            background-color: #ffffff !important;
+        }
+        [data-baseweb="select"] * {
+            color: #31333F !important;
+            background-color: #ffffff !important;
+        }
+        [data-baseweb="popover"] {
+            background-color: #ffffff !important;
+        }
+        [role="listbox"] {
+            background-color: #ffffff !important;
+        }
+        [role="option"] {
+            background-color: #ffffff !important;
+            color: #31333F !important;
+        }
+        [role="option"]:hover {
+            background-color: #f0f2f6 !important;
+        }
+        /* Inputs claros */
+        input, textarea {
+            background-color: #ffffff !important;
+            color: #31333F !important;
+            border-color: #e0e0e0 !important;
+        }
+        /* Expanders claros */
+        [data-testid="stExpander"] {
+            background-color: #ffffff;
+            border-color: #e0e0e0;
+        }
+        /* Sliders claros */
+        [data-testid="stSlider"] * {
+            color: #31333F !important;
         }
     </style>
     """, unsafe_allow_html=True)
