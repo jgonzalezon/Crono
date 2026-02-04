@@ -565,10 +565,21 @@ fig.update_xaxes(
     title="Announced",
     title_font=dict(color=title_color),
     tickfont=dict(color=title_color),
-    rangeslider=dict(visible=True),
+    rangeslider=dict(
+        visible=True,
+        thickness=0.02,
+        bgcolor="rgba(0,0,0,0)",
+        bordercolor=grid_color,
+        borderwidth=1,
+        yaxis=dict(rangemode="match")
+    ),
     showgrid=True,
     gridcolor=grid_color,
 )
+
+# Ocultar los datos en el rangeslider
+for trace in fig.data:
+    trace.update(xaxis="x")
 
 fig.update_yaxes(
     title=y_title + (" [log]" if (y_scale == "Log") else ""),
